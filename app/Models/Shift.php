@@ -60,6 +60,17 @@ class Shift
             : $this->departureTime->hour - $this->arrivalTime->hour;
     }
 
+    public function standardHours(): int
+    {
+        if ($this->arrivalTime->hour < self::LATEST_DEPARTURE) {
+            return 0;
+        }
+
+        return $this->bedtimeHours() > 0
+            ? $this->bedtime->hour - $this->arrivalTime->hour
+            : 24 - $this->arrivalTime->hour;
+    }
+
     public function validate(): void
     {
         if ($this->arrivalTime->hour < self::EARLIEST_ARRIVAL && $this->arrivalTime->hour >= self::LATEST_DEPARTURE) {
