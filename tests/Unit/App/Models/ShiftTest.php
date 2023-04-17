@@ -123,4 +123,22 @@ class ShiftTest extends TestCase
 
         $this->assertNotTrue($withoutOvertime->earnsOvertime());
     }
+
+    /** @test */
+    public function it_calculates_overtime_hours_worked(): void
+    {
+        $withOvertime = new Shift(...[
+            'arrivalTime' => CarbonImmutable::parse('2023-01-01 17:00:00'),
+            'departureTime' => CarbonImmutable::parse('2023-01-02 04:00:00'),
+        ]);
+
+        $this->assertEquals(3, $withOvertime->overtimeHoursWorked());
+
+        $withoutOvertime = new Shift(...[
+            'arrivalTime' => CarbonImmutable::parse('2023-01-01 17:00:00'),
+            'departureTime' => CarbonImmutable::parse('2023-01-01 20:00:00'),
+        ]);
+
+        $this->assertEquals(0, $withoutOvertime->overtimeHoursWorked());
+    }
 }

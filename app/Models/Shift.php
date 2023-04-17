@@ -24,6 +24,13 @@ class Shift
     {
         return $this->departureTime->diffInHours($this->arrivalTime) > self::STANDARD_LENGTH;
     }
+
+    public function overtimeHoursWorked(): int
+    {
+        return $this->earnsOvertime()
+            ? $this->departureTime->diffInHours($this->arrivalTime) - self::STANDARD_LENGTH
+            : 0;
+    }
     {
     public function validate(): void
     {
