@@ -9,39 +9,38 @@ class Shift
 {
     const EARLIEST_ARRIVAL = 17; // 5:00pm
     const LATEST_DEPARTURE = 4; // 4:00am
-    public CarbonImmutable $arrivalTime;
-    public ?CarbonImmutable $bedtime;
-    public CarbonImmutable $departureTime;
+    const MAX_LENGTH = 11;
 
     public function __construct(
-        CarbonImmutable $arrivalTime,
-        CarbonImmutable $departureTime,
-        ?CarbonImmutable $bedtime = null,
+        public CarbonImmutable $arrivalTime,
+        public CarbonImmutable $departureTime,
+        public ?CarbonImmutable $bedtime = null,
     ){
-        $this->isValid($arrivalTime, $departureTime, $bedtime);
+        $this->validate();
     }
 
-    public function isValid(CarbonImmutable $arrival, CarbonImmutable $departure, ?CarbonImmutable $bedtime = null): void
     {
-        if ($arrival->startOfHour()->hour < self::EARLIEST_ARRIVAL && $arrival->startOfHour()->hour >= self::LATEST_DEPARTURE) {
-            throw new Exception("Shifts start between 5pm and 3am");
+    public function validate(): void
+    {
+        if ($this->arrivalTime->hour < self::EARLIEST_ARRIVAL && $this->arrivalTime->hour >= self::LATEST_DEPARTURE) {
+            throw new Exception('Invalid arrival time');
         }
 
-        if ($departure->startOfHour()->addHour()->hour > self::LATEST_DEPARTURE && $departure->startOfHour()->addHour()->hour <= self::EARLIEST_ARRIVAL) {
-            throw new Exception("Shifts may only end between 6pm and 4am");
+        if ($this->departureTime->hour > self::LATEST_DEPARTURE && $this->departureTime->hour <= self::EARLIEST_ARRIVAL) {
+            throw new Exception('Invalid departure time');
         }
 
-        if (!$arrival->isSameDay($departure)
-            && $departure->startOfHour()->addHour()->greaterThan($arrival->startOfDay()->addDay()->addHours(4))
-        ) {
-            throw new Exception("A shift may only be for one night starting at 5pm and finishing by 4am");
+        if ($this->arrivalTime->greaterThanOrEqualTo($this->departureTime)) {
+            throw new Exception('Arrival must be before departure');
         }
 
-        if ($bedtime) {
-            if ($arrival->startOfHour()->greaterThan($bedtime->startOfHour()->addHour())
-                || $departure->startOfHour()->addHour()->lessThanOrEqualTo($bedtime->startOfHour()->addHour())
-            ) {
-                throw new Exception("Bedtime must be at or after arrival and before departure.");
+        if ($this->departureTime->greaterThan($this->arrivalTime->addHours(self::MAX_LENGTH))) {
+            throw new Exception('Invalid number of hours in this shift');
+        }
+
+        if ($this->bedtime) {
+            if (!$this->bedtime->between($this->arrivalTime, $this->departureTime)) {
+                throw new Exception('Invalid bedtime');
             }
         }
     }

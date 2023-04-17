@@ -9,62 +9,100 @@ use PHPUnit\Framework\TestCase;
 
 class ShiftTest extends TestCase
 {
-    /** @test */
-    public function it_validates(): void
+    public CarbonImmutable $validArrival;
+    public CarbonImmutable $validDeparture;
+    public CarbonImmutable $validBedtime;
+
+    protected function setUp(): void
     {
-        // Invalid arrival
+        parent::setUp();
+
+        $this->validArrival = CarbonImmutable::parse('2023-01-01 17:00:00');
+        $this->validDeparture = CarbonImmutable::parse('2023-01-02 04:00:00');
+        $this->validBedtime = CarbonImmutable::parse('2023-01-01 20:00:00');
+    }
+
+    /** @test */
+    public function it_can_create_a_shift(): void
+    {
+        $shift = new Shift(...[
+            'arrivalTime' => $this->validArrival,
+            'departureTime' => $this->validDeparture,
+        ]);
+
+        $this->assertNotNull($shift->arrivalTime);
+        $this->assertNotNull($shift->departureTime);
+    }
+
+    /** @test */
+    public function it_validates_arrival_time(): void
+    {
         try {
             new Shift(...[
                 'arrivalTime' => CarbonImmutable::parse('2023-01-01 12:00:00'),
-                'departureTime' => CarbonImmutable::parse('2023-01-02 00:00:00'),
+                'departureTime' => $this->validDeparture,
             ]);
 
-            $this->fail();
+            $this->fail("Failed to catch out-of-bounds arrival");
         } catch (Exception $exception) {
-            $this->assertEquals("Shifts start between 5pm and 3am", $exception->getMessage());
+            $this->assertEquals("Invalid arrival time", $exception->getMessage());
         }
 
-        // Invalid departure
         try {
             new Shift(...[
-                'arrivalTime' => CarbonImmutable::parse('2023-01-01 17:00:00'),
-                'departureTime' => CarbonImmutable::parse('2023-01-02 05:00:00'),
+                'arrivalTime' => CarbonImmutable::parse('2023-01-01 20:00:00'),
+                'departureTime' => CarbonImmutable::parse('2023-01-01 19:00:00'),
             ]);
 
-            $this->fail();
+            $this->fail("Failed to catch arrival before departure");
         } catch (Exception $exception) {
-            $this->assertEquals("Shifts may only end between 6pm and 4am", $exception->getMessage());
+            $this->assertEquals("Arrival must be before departure", $exception->getMessage());
         }
+    }
 
-        // Shift too long
+    /** @test */
+    public function it_validates_departure_time(): void
+    {
         try {
             new Shift(...[
-                'arrivalTime' => CarbonImmutable::parse('2023-01-01 17:00:00'),
+                'arrivalTime' => $this->validArrival,
+                'departureTime' => CarbonImmutable::parse('2023-01-02 12:00:00'),
+            ]);
+
+            $this->fail("Failed to catch out-of-bounds departure");
+        } catch (Exception $exception) {
+            $this->assertEquals("Invalid departure time", $exception->getMessage());
+        }
+    }
+
+    /** @test */
+    public function it_validates_too_many_hours(): void
+    {
+        try {
+            new Shift(...[
+                'arrivalTime' => $this->validArrival,
                 'departureTime' => CarbonImmutable::parse('2023-01-03 20:00:00'),
             ]);
 
-            $this->fail();
+            $this->fail("Failed to catch hours overage");
         } catch (Exception $exception) {
-            $this->assertEquals(
-                "A shift may only be for one night starting at 5pm and finishing by 4am",
-                $exception->getMessage()
-            );
+            $this->assertEquals("Invalid number of hours in this shift", $exception->getMessage());
         }
+    }
 
-        // Invalid bedtime
+    /** @test */
+    public function it_validates_valid_bedtime(): void
+    {
         try {
             new Shift(...[
-                'arrivalTime' => CarbonImmutable::parse('2023-01-01 17:00:00'),
-                'bedtime' => CarbonImmutable::parse('2023-01-01 16:00:00'),
-                'departureTime' => CarbonImmutable::parse('2023-01-01 20:00:00'),
+                'arrivalTime' => $this->validArrival,
+                'departureTime' => $this->validDeparture,
+                'bedtime' => CarbonImmutable::parse('2023-01-02 12:00:00'),
             ]);
 
-            $this->fail();
+            $this->fail("Failed to catch an invalid bedtime");
         } catch (Exception $exception) {
-            $this->assertEquals(
-                "Bedtime must be at or after arrival and before departure.",
-                $exception->getMessage()
-            );
+            $this->assertEquals("Invalid bedtime", $exception->getMessage());
         }
     }
 }
