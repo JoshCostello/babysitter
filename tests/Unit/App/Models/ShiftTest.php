@@ -176,6 +176,16 @@ class ShiftTest extends TestCase
         $shift->bedtime = CarbonImmutable::parse('2023-01-02 01:00:00');
 
         $this->assertEquals(0, $shift->bedtimeHours());
+
+        $shift->bedtime = CarbonImmutable::parse('2023-01-01 23:00:00');
+        $shift->departureTime = CarbonImmutable::parse('2023-01-02 00:00:00');
+
+        $this->assertEquals(1, $shift->bedtimeHours());
+
+        $shift->bedtime = CarbonImmutable::parse('2023-01-01 22:00:00');
+        $shift->departureTime = CarbonImmutable::parse('2023-01-01 23:00:00');
+
+        $this->assertEquals(1, $shift->bedtimeHours());
     }
 
     /** @test */
@@ -196,5 +206,11 @@ class ShiftTest extends TestCase
         $shift->arrivalTime = CarbonImmutable::parse('2023-01-02 00:00:00');
 
         $this->assertEquals(0, $shift->standardHours());
+
+        $shift->arrivalTime = CarbonImmutable::parse('2023-01-01 22:00:00');
+        $shift->departureTime = CarbonImmutable::parse('2023-01-01 23:00:00');
+
+        $this->assertEquals(1, $shift->standardHours());
+    }
     }
 }

@@ -34,7 +34,11 @@ class Shift
             return 0;
         }
 
-        return 24 - $this->bedtime->hour;
+        if ($this->departureTime->hour <= self::LATEST_DEPARTURE) {
+            return 24 - $this->bedtime->hour;
+        }
+
+        return $this->departureTime->hour - $this->bedtime->hour;
     }
     public function earnsOvertime(): bool
     {
@@ -66,9 +70,15 @@ class Shift
             return 0;
         }
 
-        return $this->bedtimeHours() > 0
-            ? $this->bedtime->hour - $this->arrivalTime->hour
-            : 24 - $this->arrivalTime->hour;
+        if ($this->bedtimeHours() > 0) {
+            return $this->bedtime->hour - $this->arrivalTime->hour;
+        }
+
+        if ($this->departureTime->hour <= self::LATEST_DEPARTURE) {
+            return 24 - $this->arrivalTime->hour;
+        }
+
+        return $this->departureTime->hour - $this->arrivalTime->hour;
     }
 
     public function validate(): void
