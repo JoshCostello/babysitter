@@ -40,6 +40,18 @@ class Shift
             : 0;
     }
     {
+
+    public function postMidnightHours(): int
+    {
+        if ($this->departureTime->hour > self::LATEST_DEPARTURE) {
+            return 0;
+        }
+
+        return $this->arrivalTime->hour > self::LATEST_DEPARTURE
+            ? $this->departureTime->hour
+            : $this->departureTime->hour - $this->arrivalTime->hour;
+    }
+
     public function validate(): void
     {
         if ($this->arrivalTime->hour < self::EARLIEST_ARRIVAL && $this->arrivalTime->hour >= self::LATEST_DEPARTURE) {
