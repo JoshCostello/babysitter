@@ -11,6 +11,7 @@ class Shift
     const EARLIEST_ARRIVAL = 17; // 5:00pm
     const LATEST_DEPARTURE = 4; // 4:00am
     const MAX_LENGTH = 11;
+    const OVERTIME_PREMIUM = 0.5;
     const STANDARD_LENGTH = 8; // Quantity of hours worked before being eligible for overtime
 
     public CarbonImmutable $arrivalTime;
@@ -29,6 +30,7 @@ class Shift
         $this->validate();
     }
 
+    /** Bedtime hours before midnight */
     public function bedtimeHours(): int
     {
         if ($this->bedtime === null || $this->bedtime->hour < self::LATEST_DEPARTURE) {
@@ -41,6 +43,16 @@ class Shift
 
         return $this->departureTime->hour - $this->bedtime->hour;
     }
+
+    public function calculateEarnings(): string
+    {
+        $earnings = $this->earnsOvertime()
+            ? $this->standardEarnings() + $this->overtimeEarnings()
+            : $this->standardEarnings();
+
+        return number_format($earnings, 2);
+    }
+
     public function earnsOvertime(): bool
     {
         return $this->departureTime->diffInHours($this->arrivalTime) > self::STANDARD_LENGTH;
@@ -52,7 +64,6 @@ class Shift
             ? $this->departureTime->diffInHours($this->arrivalTime) - self::STANDARD_LENGTH
             : 0;
     }
-    {
 
     public function postMidnightHours(): int
     {
@@ -63,13 +74,6 @@ class Shift
         return $this->arrivalTime->hour > self::LATEST_DEPARTURE
             ? $this->departureTime->hour
             : $this->departureTime->hour - $this->arrivalTime->hour;
-    }
-
-    public function standardEarnings(): int
-    {
-        return ($this->standardHours() * Rates::ARRIVAL_TO_BEDTIME->value)
-            + ($this->bedtimeHours() * Rates::BEDTIME_TO_MIDNIGHT->value)
-            + ($this->postMidnightHours() * Rates::MIDNIGHT_TO_DEPARTURE->value);
     }
 
     public function standardHours(): int
@@ -89,7 +93,31 @@ class Shift
         return $this->departureTime->hour - $this->arrivalTime->hour;
     }
 
-    public function validate(): void
+    protected function blendedRate(): float
+    {
+        return ($this->standardEarnings() / ($this->departureTime->diffInHours($this->arrivalTime)));
+    }
+
+    protected function overtimeEarnings(): float
+    {
+        return $this->overtimeHoursWorked() * $this->overtimeRate();
+    }
+
+    protected function overtimeRate(): float
+    {
+        return $this->blendedRate() * self::OVERTIME_PREMIUM;
+    }
+
+    protected function standardEarnings(): float
+    {
+        $amount = ($this->standardHours() * Rates::ARRIVAL_TO_BEDTIME->value)
+            + ($this->bedtimeHours() * Rates::BEDTIME_TO_MIDNIGHT->value)
+            + ($this->postMidnightHours() * Rates::MIDNIGHT_TO_DEPARTURE->value);
+
+        return $amount / 100;
+    }
+
+    protected function validate(): void
     {
         if ($this->arrivalTime->hour < self::EARLIEST_ARRIVAL && $this->arrivalTime->hour >= self::LATEST_DEPARTURE) {
             throw new Exception('Invalid arrival time');

@@ -214,22 +214,32 @@ class ShiftTest extends TestCase
     }
 
     /** @test */
-    public function it_calculates_standard_earnings(): void
+    public function it_calculates_earnings_wihtout_overtime(): void
     {
         $shift = new Shift(...[
-            'arrivalTime' => $this->validArrival,
-            'departureTime' => $this->validDeparture,
+            'arrivalTime' => CarbonImmutable::parse('2023-01-01 22:00:00'),
+            'departureTime' => CarbonImmutable::parse('2023-01-01 23:00:00'),
         ]);
 
-        $this->assertEquals(14800, $shift->standardEarnings());
+        $this->assertEquals('12.00', $shift->calculateEarnings());
 
-        $shift->bedtime = CarbonImmutable::parse('2023-01-01 23:00:00');
+        $shift->arrivalTime = CarbonImmutable::parse('2023-01-01 17:00:00');
+        $shift->departureTime = CarbonImmutable::parse('2023-01-02 00:00:00');
 
-        $this->assertEquals(14400, $shift->standardEarnings());
+        $this->assertEquals('84.00', $shift->calculateEarnings());
 
-        $shift->bedtime = null;
-        $shift->departureTime = CarbonImmutable::parse('2023-01-01 18:00:00');
+        $shift->departureTime = CarbonImmutable::parse('2023-01-02 01:00:00');
 
-        $this->assertEquals(1200, $shift->standardEarnings());
+        $this->assertEquals('100.00', $shift->calculateEarnings());
+
+        $shift->departureTime = CarbonImmutable::parse('2023-01-02 02:00:00');
+
+        $this->assertEquals('122.44', $shift->calculateEarnings());
+
+        $shift->arrivalTime = $this->validArrival;
+        $shift->departureTime = $this->validDeparture;
+        $shift->bedtime = $this->validBedtime;
+
+        $this->assertEquals('150.00', $shift->calculateEarnings());
     }
 }
