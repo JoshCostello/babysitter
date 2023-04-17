@@ -26,6 +26,9 @@ by going to [localhost](http://localhost). You may run the test suite by running
 *Beware*: If you are developing locally and are encountering port conflicts, you may adjust the port that this
 application is connecting to in the `docker-compose.yml` file in the root of the application.
 
+This application also ships with some light styling using Tailwind CSS and Vite. To install and build the assets, 
+you may run the following commands: `./vendor/bin/sail npm install && ./vendor/bin/sail npm run build`. 
+
 ## Assumptions
 - We're only given some small details about when the sitter may arrive. It appears possible that there could be
 overlap in timing depending on arrival, bedtime and departure. We're going to assume that we should charge the
