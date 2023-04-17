@@ -161,4 +161,20 @@ class ShiftTest extends TestCase
 
         $this->assertEquals(0, $shift->postMidnightHours());
     }
+
+    /** @test */
+    public function it_calculates_bedtime_hours(): void
+    {
+        $shift = new Shift(...[
+            'arrivalTime' => $this->validArrival,
+            'departureTime' => $this->validDeparture,
+            'bedtime' => $this->validBedtime,
+        ]);
+
+        $this->assertEquals(4, $shift->bedtimeHours());
+
+        $shift->bedtime = CarbonImmutable::parse('2023-01-02 01:00:00');
+
+        $this->assertEquals(0, $shift->bedtimeHours());
+    }
 }

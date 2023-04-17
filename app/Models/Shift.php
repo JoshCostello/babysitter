@@ -28,6 +28,14 @@ class Shift
         $this->validate();
     }
 
+    public function bedtimeHours(): int
+    {
+        if ($this->bedtime === null || $this->bedtime->hour < self::LATEST_DEPARTURE) {
+            return 0;
+        }
+
+        return 24 - $this->bedtime->hour;
+    }
     public function earnsOvertime(): bool
     {
         return $this->departureTime->diffInHours($this->arrivalTime) > self::STANDARD_LENGTH;
