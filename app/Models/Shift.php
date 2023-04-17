@@ -12,11 +12,19 @@ class Shift
     const MAX_LENGTH = 11;
     const STANDARD_LENGTH = 8; // Quantity of hours worked before being eligible for overtime
 
+    public CarbonImmutable $arrivalTime;
+    public CarbonImmutable $departureTime;
+    public ?CarbonImmutable $bedtime;
+
     public function __construct(
-        public CarbonImmutable $arrivalTime,
-        public CarbonImmutable $departureTime,
-        public ?CarbonImmutable $bedtime = null,
+        CarbonImmutable $arrivalTime,
+        CarbonImmutable $departureTime,
+        ?CarbonImmutable $bedtime = null,
     ){
+        $this->arrivalTime = $arrivalTime->startOfHour();
+        $this->departureTime = $departureTime->minute === 0 ? $departureTime : $departureTime->startOfHour()->addHour();
+        $this->bedtime = is_null($bedtime) ? null : ($bedtime->minute === 0 ? $bedtime : $bedtime->startOfHour()->addHour());
+
         $this->validate();
     }
 
