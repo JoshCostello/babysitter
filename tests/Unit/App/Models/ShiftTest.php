@@ -105,4 +105,22 @@ class ShiftTest extends TestCase
             $this->assertEquals("Invalid bedtime", $exception->getMessage());
         }
     }
+
+    /** @test */
+    public function it_can_determine_if_overtime_was_worked(): void
+    {
+        $withOvertime = new Shift(...[
+            'arrivalTime' => CarbonImmutable::parse('2023-01-01 17:00:00'),
+            'departureTime' => CarbonImmutable::parse('2023-01-02 03:00:00'),
+        ]);
+
+        $this->assertTrue($withOvertime->earnsOvertime());
+
+        $withoutOvertime = new Shift(...[
+            'arrivalTime' => CarbonImmutable::parse('2023-01-01 17:00:00'),
+            'departureTime' => CarbonImmutable::parse('2023-01-01 20:00:00'),
+        ]);
+
+        $this->assertNotTrue($withoutOvertime->earnsOvertime());
+    }
 }

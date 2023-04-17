@@ -10,6 +10,7 @@ class Shift
     const EARLIEST_ARRIVAL = 17; // 5:00pm
     const LATEST_DEPARTURE = 4; // 4:00am
     const MAX_LENGTH = 11;
+    const STANDARD_LENGTH = 8; // Quantity of hours worked before being eligible for overtime
 
     public function __construct(
         public CarbonImmutable $arrivalTime,
@@ -19,6 +20,10 @@ class Shift
         $this->validate();
     }
 
+    public function earnsOvertime(): bool
+    {
+        return $this->departureTime->diffInHours($this->arrivalTime) > self::STANDARD_LENGTH;
+    }
     {
     public function validate(): void
     {
