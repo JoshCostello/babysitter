@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Rates;
 use Carbon\CarbonImmutable;
 use Exception;
 
@@ -62,6 +63,13 @@ class Shift
         return $this->arrivalTime->hour > self::LATEST_DEPARTURE
             ? $this->departureTime->hour
             : $this->departureTime->hour - $this->arrivalTime->hour;
+    }
+
+    public function standardEarnings(): int
+    {
+        return ($this->standardHours() * Rates::ARRIVAL_TO_BEDTIME->value)
+            + ($this->bedtimeHours() * Rates::BEDTIME_TO_MIDNIGHT->value)
+            + ($this->postMidnightHours() * Rates::MIDNIGHT_TO_DEPARTURE->value);
     }
 
     public function standardHours(): int
